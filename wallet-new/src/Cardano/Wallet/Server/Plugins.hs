@@ -222,7 +222,7 @@ walletBackend protocolMagic (NewWalletBackendParams WalletBackendParams{..}) (pa
             walletAddress
             -- Disable TLS if in debug modeit .
             (if isDebugMode walletRunMode then Nothing else walletTLSParams)
-            Nothing
+            (Just $ setOnExceptionResponse handleException defaultSettings)
             (Just portCallback)
   where
     getApplication :: ActiveWalletLayer IO -> Kernel.WalletMode Application
@@ -234,10 +234,22 @@ walletBackend protocolMagic (NewWalletBackendParams WalletBackendParams{..}) (pa
     lower :: env -> ReaderT env IO a -> IO a
     lower env m = runReaderT m env
 
+    handleException :: SomeException -> Response
+    handleException e = case fromException e of
+                            Just we -> handleWalletException we
+                            Nothing -> handleGenericError e
+
     handleWalletException :: WalletException -> Response
     handleWalletException (WalletException e) =
           responseLBS (V1.toHttpErrorStatus e) [applicationJson] . encode $ e
 
+    -- Handles any generic error, trying to prevent internal exceptions from leak outside.
+    handleGenericError :: SomeException -> Response
+    handleGenericError _ =
+        let
+            unknownV1Error = V1.UnknownError "Something went wrong."
+        in
+            responseLBS badRequest400 [applicationJson] $ encode unknownV1Error
 
 -- | A @Plugin@ to resubmit pending transactions.
 resubmitterPlugin :: HasConfigurations
