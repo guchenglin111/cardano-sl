@@ -15,6 +15,7 @@ import           UTxO.Context (Addr, TransCtxt)
 import           UTxO.DSL (GivenHash, Transaction)
 import           UTxO.Translate (runTranslateNoErrors, withConfig)
 
+import qualified DeltaCompressionSpecs
 import qualified Test.Spec.Accounts
 import qualified Test.Spec.Addresses
 import qualified Test.Spec.CoinSelection
@@ -67,6 +68,7 @@ _showContext = do
 
 tests :: Spec
 tests = describe "Wallet unit tests" $ do
+    DeltaCompressionSpecs.spec
     Test.Spec.Kernel.spec
     Test.Spec.GetTransactions.spec
     Test.Spec.Translation.spec
