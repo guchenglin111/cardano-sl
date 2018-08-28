@@ -31,6 +31,7 @@ import           Cardano.Wallet.Server.CLI (NewWalletBackendParams (..),
                      walletAcidInterval, walletDbOptions)
 import           Cardano.Wallet.WalletLayer (ActiveWalletLayer,
                      PassiveWalletLayer)
+import           Cardano.Wallet.WalletLayer.Exception (WalletException (..))
 import qualified Cardano.Wallet.WalletLayer.Kernel as WalletLayer.Kernel
 import qualified Pos.Wallet.Web.Error.Types as V0
 
@@ -232,6 +233,11 @@ walletBackend protocolMagic (NewWalletBackendParams WalletBackendParams{..}) (pa
 
     lower :: env -> ReaderT env IO a -> IO a
     lower env m = runReaderT m env
+
+    handleWalletException :: WalletException -> Response
+    handleWalletException (WalletException e) =
+          responseLBS (V1.toHttpErrorStatus e) [applicationJson] . encode $ e
+
 
 -- | A @Plugin@ to resubmit pending transactions.
 resubmitterPlugin :: HasConfigurations

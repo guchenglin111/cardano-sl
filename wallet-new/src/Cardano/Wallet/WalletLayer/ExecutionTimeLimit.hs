@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveGeneric #-}
+
 module Cardano.Wallet.WalletLayer.ExecutionTimeLimit (
       limitExecutionTimeTo
     , TimeExecutionLimit(..)
@@ -14,13 +16,26 @@ import           Control.Concurrent (threadDelay)
 import           Control.Concurrent.Async (AsyncCancelled (..))
 import qualified Control.Concurrent.Async as Async
 import           Control.Exception (evaluate)
+import           Data.Aeson (FromJSON (..), ToJSON (..))
 import           Data.Time.Units (Second)
+import           Generics.SOP.TH (deriveGeneric)
+
 
 data TimeExecutionLimit =
     TimeExecutionLimitReached Second
-    deriving (Eq, Show)
+    deriving (Generic, Eq, Show)
+
+deriveGeneric ''TimeExecutionLimit
 
 instance Exception TimeExecutionLimit
+
+instance ToJSON TimeExecutionLimit where
+    toJSON = error "TODO"
+
+instance FromJSON TimeExecutionLimit where
+    parseJSON = error "TODO"
+    -- FIXME: Second does not have instances. Would need orphans or something else
+
 
 instance Buildable TimeExecutionLimit where
     build (TimeExecutionLimitReached secs) =

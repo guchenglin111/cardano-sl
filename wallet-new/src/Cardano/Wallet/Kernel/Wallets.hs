@@ -1,3 +1,6 @@
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE LambdaCase    #-}
+
 module Cardano.Wallet.Kernel.Wallets (
       createHdWallet
     , updateHdWallet
@@ -18,6 +21,7 @@ import qualified Formatting as F
 import qualified Formatting.Buildable
 
 import           Data.Acid.Advanced (update')
+import qualified Data.Aeson as Aeson
 
 import           Pos.Core (Timestamp)
 import           Pos.Crypto (EncryptedSecretKey, PassPhrase,
@@ -50,6 +54,13 @@ import           Test.QuickCheck (Arbitrary (..), oneof)
 data CreateWalletError =
       CreateWalletFailed HD.CreateHdRootError
       -- ^ When trying to create the 'Wallet', the DB operation failed.
+      deriving (Generic, Eq)
+
+instance Aeson.ToJSON CreateWalletError where
+    toJSON = Aeson.genericToJSON Aeson.defaultOptions
+
+instance Aeson.FromJSON CreateWalletError where
+    parseJSON = Aeson.genericParseJSON Aeson.defaultOptions
 
 instance Arbitrary CreateWalletError where
     arbitrary = oneof []
@@ -75,6 +86,13 @@ data UpdateWalletPasswordError =
       -- 'PassPhrase', the crypto primitive responsible for that failed.
     | UpdateWalletPasswordUnknownHdRoot HD.UnknownHdRoot
       -- ^ When trying to update the DB the input 'HdRootId' was not found.
+    deriving (Generic, Eq)
+
+instance Aeson.ToJSON UpdateWalletPasswordError where
+    toJSON = Aeson.genericToJSON Aeson.defaultOptions
+
+instance Aeson.FromJSON UpdateWalletPasswordError where
+    parseJSON = Aeson.genericParseJSON Aeson.defaultOptions
 
 instance Arbitrary UpdateWalletPasswordError where
     arbitrary = oneof []
