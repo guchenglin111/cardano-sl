@@ -48,6 +48,7 @@ import           Cardano.Wallet.Kernel.DB.InDb (InDb (..))
 import           Cardano.Wallet.Orphans ()
 import qualified Cardano.Wallet.Util as Util
 import           Cardano.Wallet.WalletLayer
+import           Cardano.Wallet.WalletLayer.QuickCheck ()
 
 -- | Tests whether or not some instances (JSON, Bi, etc) roundtrips.
 spec :: HasCallStack => Spec

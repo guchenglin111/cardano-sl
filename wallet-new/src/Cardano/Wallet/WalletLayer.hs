@@ -552,11 +552,6 @@ instance Exception DeleteAccountError where
     toException   = walletExceptionToException
     fromException = walletExceptionFromException
 
-instance Arbitrary DeleteAccountError where
-    arbitrary = oneof [ DeleteAccountError . V1 <$> arbitrary
-                      , pure (DeleteAccountWalletIdDecodingFailed "message")
-                      ]
-
 
 data GetAccountsError =
       GetAccountsError Kernel.UnknownHdRoot
@@ -636,11 +631,6 @@ instance Show UpdateAccountError where
 instance Exception UpdateAccountError where
     toException   = walletExceptionToException
     fromException = walletExceptionFromException
-
-instance Arbitrary UpdateAccountError where
-    arbitrary = oneof [ UpdateAccountError . V1 <$> arbitrary
-                      , pure (UpdateAccountWalletIdDecodingFailed "message")
-                      ]
 
 ------------------------------------------------------------
 -- Errors when getting Transactions
