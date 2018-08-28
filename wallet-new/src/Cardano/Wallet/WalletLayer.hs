@@ -63,6 +63,7 @@ import           Cardano.Wallet.Kernel.CoinSelection.FromGeneric
 import qualified Cardano.Wallet.Kernel.DB.HdWallet as Kernel
 import           Cardano.Wallet.Kernel.DB.TxMeta.Types
 import           Cardano.Wallet.Kernel.DB.Util.IxSet (IxSet)
+import Cardano.Wallet.Kernel.DB.HdWallet ()
 import qualified Cardano.Wallet.Kernel.Transactions as Kernel
 import qualified Cardano.Wallet.Kernel.Wallets as Kernel
 import           Cardano.Wallet.WalletLayer.Exception
@@ -295,7 +296,29 @@ data GetUtxosError =
       GetUtxosWalletIdDecodingFailed Text
     | GetUtxosGetAccountsError Kernel.UnknownHdRoot
     | GetUtxosCurrentAvailableUtxoError Kernel.UnknownHdAccount
-    deriving Eq
+    deriving (Generic, Eq)
+
+deriveGeneric ''GetUtxosError
+
+instance HasDiagnostic GetUtxosError where
+    getDiagnosticKey = \case
+        GetUtxosWalletIdDecodingFailed _ -> error "TODO"
+        GetUtxosGetAccountsError _ -> error "TODO"
+        GetUtxosCurrentAvailableUtxoError _ -> error "TODO"
+
+instance ToServantError GetUtxosError where
+    declareServantError = \case
+        GetUtxosWalletIdDecodingFailed _ -> error "TODO"
+        GetUtxosGetAccountsError _ -> error "TODO"
+        GetUtxosCurrentAvailableUtxoError _ -> error "TODO"
+
+instance ToHttpErrorStatus GetUtxosError
+
+instance ToJSON GetUtxosError where
+    toJSON = jsendErrorGenericToJSON
+
+instance FromJSON GetUtxosError where
+    parseJSON = jsendErrorGenericParseJSON
 
 -- | Unsound show instance needed for the 'Exception' instance.
 instance Show GetUtxosError where
@@ -529,6 +552,11 @@ instance Exception DeleteAccountError where
     toException   = walletExceptionToException
     fromException = walletExceptionFromException
 
+instance Arbitrary DeleteAccountError where
+    arbitrary = oneof [ DeleteAccountError . V1 <$> arbitrary
+                      , pure (DeleteAccountWalletIdDecodingFailed "message")
+                      ]
+
 
 data GetAccountsError =
       GetAccountsError Kernel.UnknownHdRoot
@@ -608,6 +636,11 @@ instance Show UpdateAccountError where
 instance Exception UpdateAccountError where
     toException   = walletExceptionToException
     fromException = walletExceptionFromException
+
+instance Arbitrary UpdateAccountError where
+    arbitrary = oneof [ UpdateAccountError . V1 <$> arbitrary
+                      , pure (UpdateAccountWalletIdDecodingFailed "message")
+                      ]
 
 ------------------------------------------------------------
 -- Errors when getting Transactions
