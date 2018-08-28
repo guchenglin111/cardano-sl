@@ -176,7 +176,7 @@ let
       owner = "NixOS";
       repo = "cabal2nix";
       rev = "v2.11";
-      sha256 = "0ir31ygah8byglhk5ldniv12191385ghs2zcikhcj98byhw9va50";
+      sha256 = "0jjrrjqs02wd1k68zxmn952sbhiqbikk5sinfryjza5yss883gf4";
     }) { inherit pkgs; };
     stack2nix = (import (pkgs.fetchFromGitHub {
       owner = "avieth";
