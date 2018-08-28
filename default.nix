@@ -124,7 +124,7 @@ let
   };
 
   cardanoPkgsBase = ((import ./pkgs { inherit pkgs; }).override {
-    ghc = overrideDerivation pkgs.haskell.compiler.ghc843 (drv: with pkgs.stdenv; {
+    ghc = overrideDerivation pkgs.haskell.compiler.ghc822 (drv: with pkgs.stdenv; {
       patches = drv.patches ++ lib.optional isDarwin ./ghc-8.0.2-darwin-rec-link.patch;
     });
   });
