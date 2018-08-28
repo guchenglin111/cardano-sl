@@ -506,6 +506,9 @@ instance Buildable RedeemAdaError where
     build (RedeemAdaNewForeignFailed err) =
       bprint ("RedeemAdaNewForeignFailed " % build) err
 
+instance Arbitrary RedeemAdaError where
+    arbitrary = oneof []
+
 -- | Redeem Ada voucher
 --
 -- NOTE: The account must already exist, it is /not/ created implicitly if it

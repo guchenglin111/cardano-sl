@@ -59,7 +59,8 @@ import           Cardano.Wallet.Kernel.Internal (WalletRestorationInfo,
                      wriCurrentSlot, wriTargetSlot, wriThroughput)
 import qualified Cardano.Wallet.Kernel.Read as Kernel
 import           Cardano.Wallet.Kernel.Util (exceptT)
--- import           Cardano.Wallet.WalletLayer (InvalidRedemptionCode (..))
+
+import           Test.QuickCheck (Arbitrary (..), arbitrary, elements, oneof)
 
 {-------------------------------------------------------------------------------
   From V1 to kernel types
@@ -238,6 +239,12 @@ instance Buildable InvalidRedemptionCode where
 
 instance Show InvalidRedemptionCode where
     show = formatToString build
+
+instance Arbitrary InvalidRedemptionCode where
+    arbitrary = oneof [ InvalidRedemptionCodeInvalidBase64 <$> arbitrary
+                      , InvalidRedemptionCodeCryptoError <$> cryptoError
+                      ]
+      where cryptoError = (elements $ enumFrom (toEnum 0))
 
 -- | Calculate the 'SyncState' from data about the wallet's restoration.
 toSyncState :: Maybe WalletRestorationInfo -> V1.SyncState

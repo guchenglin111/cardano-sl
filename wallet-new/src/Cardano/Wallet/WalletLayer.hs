@@ -60,10 +60,10 @@ import qualified Cardano.Wallet.Kernel.Accounts as Kernel
 import qualified Cardano.Wallet.Kernel.Addresses as Kernel
 import           Cardano.Wallet.Kernel.CoinSelection.FromGeneric
                      (ExpenseRegulation, InputGrouping)
+import           Cardano.Wallet.Kernel.DB.HdWallet ()
 import qualified Cardano.Wallet.Kernel.DB.HdWallet as Kernel
 import           Cardano.Wallet.Kernel.DB.TxMeta.Types
 import           Cardano.Wallet.Kernel.DB.Util.IxSet (IxSet)
-import Cardano.Wallet.Kernel.DB.HdWallet ()
 import qualified Cardano.Wallet.Kernel.Transactions as Kernel
 import qualified Cardano.Wallet.Kernel.Wallets as Kernel
 import           Cardano.Wallet.WalletLayer.Exception
@@ -702,7 +702,7 @@ data NewPaymentError =
     | NewPaymentTimeLimitReached TimeExecutionLimit
     | NewPaymentWalletIdDecodingFailed Text
     | NewPaymentUnknownAccountId Kernel.UnknownHdAccount
-    deriving (Generic)
+    deriving (Generic, Eq)
 
 -- | Unsound show instance needed for the 'Exception' instance.
 instance Show NewPaymentError where
@@ -746,12 +746,14 @@ instance Buildable NewPaymentError where
     build (NewPaymentUnknownAccountId err) =
         bprint ("NewPaymentUnknownAccountId " % build) err
 
+instance Arbitrary NewPaymentError where
+    arbitrary = oneof [ NewPaymentWalletIdDecodingFailed <$> arbitrary ]
 
 data EstimateFeesError =
       EstimateFeesError Kernel.EstimateFeesError
     | EstimateFeesTimeLimitReached TimeExecutionLimit
     | EstimateFeesWalletIdDecodingFailed Text
-    deriving (Generic)
+    deriving (Generic, Eq)
 
 deriveGeneric ''EstimateFeesError
 
@@ -800,7 +802,7 @@ data RedeemAdaError =
     RedeemAdaError Kernel.RedeemAdaError
   | RedeemAdaWalletIdDecodingFailed Text
   | RedeemAdaInvalidRedemptionCode InvalidRedemptionCode
-  deriving (Generic)
+  deriving (Generic, Eq)
 
 deriveGeneric ''RedeemAdaError
 
