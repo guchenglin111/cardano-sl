@@ -679,6 +679,7 @@ data NewPaymentError =
     | NewPaymentTimeLimitReached TimeExecutionLimit
     | NewPaymentWalletIdDecodingFailed Text
     | NewPaymentUnknownAccountId Kernel.UnknownHdAccount
+    deriving (Generic)
 
 -- | Unsound show instance needed for the 'Exception' instance.
 instance Show NewPaymentError where
@@ -727,6 +728,7 @@ data EstimateFeesError =
       EstimateFeesError Kernel.EstimateFeesError
     | EstimateFeesTimeLimitReached TimeExecutionLimit
     | EstimateFeesWalletIdDecodingFailed Text
+    deriving (Generic)
 
 deriveGeneric ''EstimateFeesError
 
@@ -775,6 +777,7 @@ data RedeemAdaError =
     RedeemAdaError Kernel.RedeemAdaError
   | RedeemAdaWalletIdDecodingFailed Text
   | RedeemAdaInvalidRedemptionCode InvalidRedemptionCode
+  deriving (Generic)
 
 deriveGeneric ''RedeemAdaError
 
