@@ -138,6 +138,13 @@ data NewForeignError =
 
     -- | Some inputs are not in the wallet utxo
   | NewForeignFailed Spec.NewForeignFailed
+  deriving (Generic, Eq)
+
+instance Aeson.ToJSON NewForeignError where
+    toJSON = Aeson.genericToJSON Aeson.defaultOptions
+
+instance Aeson.FromJSON NewForeignError where
+    parseJSON = Aeson.genericParseJSON Aeson.defaultOptions
 
 -- | Errors thrown by 'SwitchToFork'
 data SwitchToForkError =

@@ -486,6 +486,13 @@ data RedeemAdaError =
     --
     -- If this error happens, it almost certainly indicates a bug.
   | RedeemAdaNewForeignFailed NewForeignError
+  deriving (Generic, Eq)
+
+instance Aeson.ToJSON RedeemAdaError where
+    toJSON = Aeson.genericToJSON Aeson.defaultOptions
+
+instance Aeson.FromJSON RedeemAdaError where
+    parseJSON = Aeson.genericParseJSON Aeson.defaultOptions
 
 instance Buildable RedeemAdaError where
     build (RedeemAdaUnknownAccountId err) =

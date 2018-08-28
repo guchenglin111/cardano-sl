@@ -82,6 +82,13 @@ instance Arbitrary NewPendingFailed where
 data NewForeignFailed =
     -- | Foreign transactions are not allowed spend from this wallet
     NewForeignInputsAvailable (InDb (Set Txp.TxIn))
+    deriving (Generic, Eq)
+
+instance Aeson.ToJSON NewForeignFailed where
+    toJSON = Aeson.genericToJSON Aeson.defaultOptions
+
+instance Aeson.FromJSON NewForeignFailed where
+    parseJSON = Aeson.genericParseJSON Aeson.defaultOptions
 
 deriveSafeCopy 1 'base ''NewForeignFailed
 

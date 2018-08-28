@@ -1,4 +1,6 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE LambdaCase    #-}
+
 -- | Convert to and from V1 types
 module Cardano.Wallet.WalletLayer.Kernel.Conv (
     -- * From V1 to kernel types
@@ -31,6 +33,7 @@ import qualified Prelude
 import           Control.Lens (to)
 import           Control.Monad.Except
 import           Crypto.Error (CryptoError)
+import           Data.Aeson as Aeson
 import           Data.ByteString.Base58 (bitcoinAlphabet, decodeBase58)
 import           Formatting (bprint, build, formatToString, sformat, shown, (%))
 import qualified Formatting.Buildable
@@ -215,6 +218,13 @@ data InvalidRedemptionCode =
     -- NOTE: For paper wallets the seed is actually AES encrypted so the
     -- length would be hard to verify simply by inspecting this text.
   | InvalidRedemptionCodeNot32Bytes Text
+  deriving (Generic, Eq)
+
+instance Aeson.ToJSON InvalidRedemptionCode where
+    toJSON = error "TODO"
+
+instance Aeson.FromJSON InvalidRedemptionCode where
+    parseJSON = error "TODO"
 
 instance Buildable InvalidRedemptionCode where
     build (InvalidRedemptionCodeInvalidBase64 txt) =
