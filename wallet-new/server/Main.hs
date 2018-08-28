@@ -48,8 +48,9 @@ import qualified Cardano.Wallet.Kernel.Keystore as Keystore
 import qualified Cardano.Wallet.Kernel.NodeStateAdaptor as NodeStateAdaptor
 import           Cardano.Wallet.Server.CLI (ChooseWalletBackend (..),
                      NewWalletBackendParams (..), WalletBackendParams (..),
-                     WalletStartupOptions (..), getWalletNodeOptions,
-                     walletDbPath, walletFlushDb, walletRebuildDb)
+                     WalletStartupOptions (..), getWalletDbOptions,
+                     getWalletNodeOptions, walletDbPath, walletFlushDb,
+                     walletRebuildDb)
 import qualified Cardano.Wallet.Server.Plugins as Plugins
 import           Cardano.Wallet.WalletLayer (PassiveWalletLayer)
 import qualified Cardano.Wallet.WalletLayer.Kernel as WalletLayer.Kernel
@@ -58,14 +59,9 @@ import qualified Cardano.Wallet.WalletLayer.Kernel as WalletLayer.Kernel
 defaultLoggerName :: LoggerName
 defaultLoggerName = "node"
 
-{-
-   Most of the code below has been copied & adapted from wallet/node/Main.hs as a path
-   of least resistance to make the wallet-new prototype independent (to an extent)
-   from breaking changes to the current wallet.
--}
-
--- | The "workhorse" responsible for starting a Cardano edge node plus a number of extra plugins.
-actionWithWallet :: (HasConfigurations, HasCompileInfo)
+-- | The legacy function responsible for starting a Cardano edge node plus a
+-- number of extra plugins.
+actionWithLegacyWallet :: (HasConfigurations, HasCompileInfo)
                  => ProtocolMagic
                  -> TxpConfiguration
                  -> SscParams
@@ -73,7 +69,7 @@ actionWithWallet :: (HasConfigurations, HasCompileInfo)
                  -> NtpConfiguration
                  -> WalletBackendParams
                  -> IO ()
-actionWithWallet pm txpConfig sscParams nodeParams ntpConfig wArgs@WalletBackendParams {..} =
+actionWithLegacyWallet pm txpConfig sscParams nodeParams ntpConfig wArgs@WalletBackendParams {..} =
     bracketWalletWebDB (walletDbPath walletDbOptions) (walletRebuildDb walletDbOptions) $ \db ->
         bracketWalletWS $ \conn ->
             bracketNodeResources nodeParams sscParams
@@ -115,16 +111,16 @@ actionWithWallet pm txpConfig sscParams nodeParams ntpConfig wArgs@WalletBackend
                 , Plugins.notifierPlugin
                 ]
 
-actionWithNewWallet :: (HasConfigurations, HasCompileInfo)
-                    => Kernel.DatabaseMode
-                    -> ProtocolMagic
-                    -> TxpConfiguration
-                    -> SscParams
-                    -> NodeParams
-                    -> NtpConfiguration
-                    -> NewWalletBackendParams
-                    -> IO ()
-actionWithNewWallet dbMode pm txpConfig sscParams nodeParams ntpConfig params =
+-- | The "workhorse" responsible for starting a Cardano edge node plus a number of extra plugins.
+actionWithWallet :: (HasConfigurations, HasCompileInfo)
+                 => ProtocolMagic
+                 -> TxpConfiguration
+                 -> SscParams
+                 -> NodeParams
+                 -> NtpConfiguration
+                 -> NewWalletBackendParams
+                 -> IO ()
+actionWithWallet pm txpConfig sscParams nodeParams ntpConfig params =
     bracketNodeResources
         nodeParams
         sscParams
@@ -134,13 +130,18 @@ actionWithNewWallet dbMode pm txpConfig sscParams nodeParams ntpConfig params =
       userSecret <- readTVarIO (ncUserSecret $ nrContext nr)
       let nodeState = NodeStateAdaptor.newNodeStateAdaptor nr ntpStatus
       liftIO $ Keystore.bracketLegacyKeystore userSecret $ \keystore -> do
+          let dbPath = walletDbPath (getWalletDbOptions params)
+          let dbMode = Kernel.UseFilePath (Kernel.DatabasePaths {
+                Kernel.dbPathAcidState = Just (dbPath <> "-acid")
+              , Kernel.dbPathMetadata  = Just (dbPath <> "-sqlite")
+              })
           WalletLayer.Kernel.bracketPassiveWallet dbMode logMessage' keystore nodeState $ \walletLayer passiveWallet -> do
-            Kernel.init passiveWallet
-            Kernel.Mode.runWalletMode pm
-                                      txpConfig
-                                      nr
-                                      walletLayer
-                                      (mainAction (walletLayer, passiveWallet) nr)
+              Kernel.init passiveWallet
+              Kernel.Mode.runWalletMode pm
+                                        txpConfig
+                                        nr
+                                        walletLayer
+                                        (mainAction (walletLayer, passiveWallet) nr)
   where
     mainAction
         :: (PassiveWalletLayer IO, PassiveWallet)
@@ -155,7 +156,7 @@ actionWithNewWallet dbMode pm txpConfig sscParams nodeParams ntpConfig params =
     runNodeWithInit w nr = runNode pm txpConfig nr (plugins w)
 
     -- TODO: Don't know if we need any of the other plugins that are used
-    -- in the legacy wallet (see 'actionWithWallet').
+    -- in the legacy wallet (see 'actionWithLegacyWallet').
     plugins :: (PassiveWalletLayer IO, PassiveWallet)
             -> Plugins.Plugin Kernel.Mode.WalletMode
     plugins w = mconcat [ Plugins.walletBackend pm params w ]
@@ -180,15 +181,14 @@ startEdgeNode wso =
             txpConfig
             ntpConfig
         case wsoWalletBackendParams wso of
-            WalletLegacy legacyParams -> actionWithWallet
+            WalletLegacy legacyParams -> actionWithLegacyWallet
                 (configProtocolMagic coreConfig)
                 txpConfig
                 sscParams
                 nodeParams
                 ntpConfig
                 legacyParams
-            WalletNew newParams -> actionWithNewWallet
-                Kernel.UseInMemory -- TODO: Pull from configuration
+            WalletNew newParams -> actionWithWallet
                 (configProtocolMagic coreConfig)
                 txpConfig
                 sscParams
