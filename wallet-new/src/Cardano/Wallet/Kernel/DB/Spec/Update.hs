@@ -23,7 +23,6 @@ module Cardano.Wallet.Kernel.DB.Spec.Update (
 import           Universum hiding ((:|))
 
 import qualified Data.Aeson as Aeson
-import qualified Data.List.NonEmpty as NE
 import qualified Data.Map.Strict as Map
 import           Data.SafeCopy (base, deriveSafeCopy)
 import qualified Data.Set as Set
