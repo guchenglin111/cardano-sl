@@ -3,7 +3,7 @@
 # Only works with sufficiently recent nixpkgs, e.g. "NIX_PATH=nixpkgs=https://github.com/NixOS/nixpkgs/archive/21a8239452adae3a4717772f4e490575586b2755.tar.gz".
 
 { pkgs ? (import <nixpkgs> {})
-, compiler ? pkgs.haskell.packages.ghc822
+, compiler ? pkgs.haskell.packages.ghc843
 }:
 
 with pkgs.haskell.lib;
@@ -90864,4 +90864,3 @@ in compiler.override {
   configurationCommon = { ... }: self: super: {};
   compilerConfig = self: super: {};
 }
-

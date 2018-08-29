@@ -124,7 +124,7 @@ let
   };
 
   cardanoPkgsBase = ((import ./pkgs { inherit pkgs; }).override {
-    ghc = overrideDerivation pkgs.haskell.compiler.ghc822 (drv: with pkgs.stdenv; {
+    ghc = overrideDerivation pkgs.haskell.compiler.ghc843 (drv: with pkgs.stdenv; {
       patches = drv.patches ++ lib.optional isDarwin ./ghc-8.0.2-darwin-rec-link.patch;
     });
   });
@@ -172,12 +172,13 @@ let
       ignoreCollisions = true;
     };
     mkDocker = { environment, connectArgs ? {} }: import ./docker.nix { inherit environment connect gitrev pkgs connectArgs; };
-    stack2nix = import (pkgs.fetchFromGitHub {
-      owner = "avieth";
-      repo = "stack2nix";
-      rev = "c51db2d31892f7c4e7ff6acebe4504f788c56dca";
-      sha256 = "10jcj33sxpq18gxf3zcck5i09b2y4jm6qjggqdlwd9ss86wg3ksb";
-    }) { inherit pkgs; };
+    stack2nix = import ./../stack2nix/default.nix { inherit pkgs; };
+    #import (pkgs.fetchFromGitHub {
+    #  owner = "input-output-hk";
+    #  repo = "stack2nix";
+    #  rev = "7c52120abacec3fdb70997becce9da7c9c19f7c1";
+    #  sha256 = "036gbgdm1x2rlq0dxrlfqi9fz1pddspjvhisifd2iriif0l57y1r";
+    #}) { inherit pkgs; };
     inherit (pkgs) purescript;
     connectScripts = {
       mainnet = {
