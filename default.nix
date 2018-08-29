@@ -172,13 +172,14 @@ let
       ignoreCollisions = true;
     };
     mkDocker = { environment, connectArgs ? {} }: import ./docker.nix { inherit environment connect gitrev pkgs connectArgs; };
-    stack2nix = import ./../stack2nix/default.nix { inherit pkgs; };
-    #import (pkgs.fetchFromGitHub {
-    #  owner = "input-output-hk";
-    #  repo = "stack2nix";
-    #  rev = "7c52120abacec3fdb70997becce9da7c9c19f7c1";
-    #  sha256 = "036gbgdm1x2rlq0dxrlfqi9fz1pddspjvhisifd2iriif0l57y1r";
-    #}) { inherit pkgs; };
+
+    # fixup stack2nix to support a more recent cabal2nix, such that we can parse ...OR... licenses.
+    stack2nix = import (pkgs.fetchFromGitHub {
+      owner = "input-output-hk";
+      repo = "stack2nix";
+      rev = "e88a8ab79cf2d354735f546f40690e5607894d46";
+      sha256 = "0wmhkfwgrhjbz7s01mli12xhxcqmrr9yz3b72pwv3qnk56cjhx9s";
+    }) { inherit pkgs; };
     inherit (pkgs) purescript;
     connectScripts = {
       mainnet = {
